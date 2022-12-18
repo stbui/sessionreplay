@@ -1,0 +1,44 @@
+{
+    "name": "sessionreplay",
+    "version": "1.0.0",
+    "description": "专注于前端用户行为产生的数据采集，分析和监控等解决方案",
+    "homepage": "https://github.com/stbui/sessionreplay",
+    "bugs": "https://github.com/stbui/sessionreplay/issues",
+    "private": true,
+    "scripts": {
+        "bootstrap:ci": "lerna bootstrap",
+        "build": "lerna run build",
+        "release": "yarn run build && lerna publish --exact --conventional-commits",
+        "prettier": "prettier --config ./.prettierrc.js --write --list-different \"packages/*/src/**/*.{js,json,ts,tsx}\""
+    },
+    "author": "stbui",
+    "license": "ISC",
+    "engines": {
+        "node": ">=10.0.0"
+    },
+    "workspaces": [
+        "examples/*",
+        "packages/*"
+    ],
+    "lint-staged": {
+        "*.ts?(x)": [
+            "prettier --parser=typescript --write",
+            "git add"
+        ],
+        "*.{js,jsx,less,md,json}": [
+            "prettier --write",
+            "git add"
+        ]
+    },
+    "gitHooks": {
+        "pre-commit": "lint-staged",
+        "commit-msg": "node scripts/verifyCommit.js"
+    },
+    "devDependencies": {
+        "lint-staged": "^13.0.3",
+        "gh-pages": "^4.0.0",
+        "lerna": "^6.0.3",
+        "prettier": "^2.7.1",
+        "typescript": "^4.9.3"
+    }
+}

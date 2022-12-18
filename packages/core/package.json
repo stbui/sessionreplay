@@ -1,0 +1,28 @@
+{
+    "name": "@stbui/sessionreplay-core",
+    "version": "1.0.0",
+    "description": "sessionreplay",
+    "homepage": "https://github.com/stbui/sessionreplay#readme",
+    "bugs": {
+        "url": "https://github.com/stbui/sessionreplay/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/stbui/sessionreplay.git"
+    },
+    "license": "ISC",
+    "author": "stbui <stbui@stbui.com>",
+    "main": "lib/index.js",
+    "module": "esm/index.js",
+    "typings": "./lib/index.d.ts",
+    "scripts": {
+        "build": "yarn run build:cjs && yarn run build:esm",
+        "build:cjs": "rm -rf ./lib && tsc",
+        "build:esm": "rm -rf ./esm && tsc --outDir esm --module es2015",
+        "test": "node ./lib/index.js",
+        "watch": "tsc --watch"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
