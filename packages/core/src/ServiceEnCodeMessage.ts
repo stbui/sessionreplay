@@ -1288,6 +1288,7 @@ export default function ServiceEnCodeMessage(msg) {
         set_node_attribute: 12,
         remove_node_attribute: 13,
         set_node_data: 14,
+        set_css_data: 15,
         set_node_scroll: 16,
         set_input_target: 17,
         set_input_value: 18,

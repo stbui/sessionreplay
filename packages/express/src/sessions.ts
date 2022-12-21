@@ -1,62 +1,61 @@
 import { toHump } from './utils';
+import { RescorcesServices } from './resources';
 
+const sql = `
+CREATE TABLE IF NOT EXISTS sessions 
+(
+    session_id              integer         PRIMARY KEY,
+    project_id              integer         NOT NULL,
+    tracker_version         varchar         NOT NULL,
+    start_ts                integer         NOT NULL,
+    duration                integer         NULL,
+    rev_id                  varchar                     DEFAULT NULL,
+    platform                varchar                     DEFAULT web,
+    is_snippet              boolean         NOT NULL    DEFAULT FALSE,
+    user_id                 varchar                     DEFAULT NULL,
+    user_anonymous_id       varchar                     DEFAULT NULL,
+    user_uuid               varchar         NOT NULL,
+    user_agent              varchar                     DEFAULT NULL,
+    user_os                 varchar         NOT NULL,
+    user_os_version         varchar                     DEFAULT NULL,
+    user_browser            varchar                     DEFAULT NULL,
+    user_browser_version    varchar                     DEFAULT NULL,
+    user_device             varchar         NOT NULL,
+    user_device_type        varchar         NOT NULL,
+    user_device_memory_size integer                     DEFAULT NULL,
+    user_device_heap_size   integer                     DEFAULT NULL,
+    user_country            varchar         NOT NULL,
+    pages_count             integer         NOT NULL DEFAULT 0,
+    events_count            integer         NOT NULL DEFAULT 0,
+    errors_count            integer         NOT NULL DEFAULT 0,
+    watchdogs_score         integer         NOT NULL DEFAULT 0,
+    issue_score             integer         NOT NULL DEFAULT 0,
+    issue_types             varchar         NOT NULL DEFAULT '',
+    utm_source              varchar         NULL     DEFAULT NULL,
+    utm_medium              varchar         NULL     DEFAULT NULL,
+    utm_campaign            varchar         NULL     DEFAULT NULL,
+    referrer                varchar         NULL     DEFAULT NULL,
+    base_referrer           varchar         NULL     DEFAULT NULL,
+    metadata_1              varchar                  DEFAULT NULL,
+    metadata_2              varchar                  DEFAULT NULL,
+    metadata_3              varchar                  DEFAULT NULL,
+    metadata_4              varchar                  DEFAULT NULL,
+    metadata_5              varchar                  DEFAULT NULL,
+    metadata_6              varchar                  DEFAULT NULL,
+    metadata_7              varchar                  DEFAULT NULL,
+    metadata_8              varchar                  DEFAULT NULL,
+    metadata_9              varchar                  DEFAULT NULL,
+    metadata_10             varchar                  DEFAULT NULL
+);`;
 export class SessionsService {
     constructor(protected db) {
         db.serialize(function () {
-            // db.run('DROP TABLE IF EXISTS "sessions";');
-            db.run(
-                `CREATE TABLE IF NOT EXISTS sessions 
-    (
-        session_id              integer         PRIMARY KEY,
-        project_id              integer         NOT NULL,
-        tracker_version         varchar         NOT NULL,
-        start_ts                integer         NOT NULL,
-        duration                integer         NULL,
-        rev_id                  varchar                     DEFAULT NULL,
-        platform                varchar                     DEFAULT web,
-        is_snippet              boolean         NOT NULL    DEFAULT FALSE,
-        user_id                 varchar                     DEFAULT NULL,
-        user_anonymous_id       varchar                     DEFAULT NULL,
-        user_uuid               varchar         NOT NULL,
-        user_agent              varchar                     DEFAULT NULL,
-        user_os                 varchar         NOT NULL,
-        user_os_version         varchar                     DEFAULT NULL,
-        user_browser            varchar                     DEFAULT NULL,
-        user_browser_version    varchar                     DEFAULT NULL,
-        user_device             varchar         NOT NULL,
-        user_device_type        varchar         NOT NULL,
-        user_device_memory_size integer                     DEFAULT NULL,
-        user_device_heap_size   integer                     DEFAULT NULL,
-        user_country            varchar         NOT NULL,
-        pages_count             integer         NOT NULL DEFAULT 0,
-        events_count            integer         NOT NULL DEFAULT 0,
-        errors_count            integer         NOT NULL DEFAULT 0,
-        watchdogs_score         integer         NOT NULL DEFAULT 0,
-        issue_score             integer         NOT NULL DEFAULT 0,
-        issue_types             varchar         NOT NULL DEFAULT '',
-        utm_source              varchar         NULL     DEFAULT NULL,
-        utm_medium              varchar         NULL     DEFAULT NULL,
-        utm_campaign            varchar         NULL     DEFAULT NULL,
-        referrer                varchar         NULL     DEFAULT NULL,
-        base_referrer           varchar         NULL     DEFAULT NULL,
-        metadata_1              varchar                  DEFAULT NULL,
-        metadata_2              varchar                  DEFAULT NULL,
-        metadata_3              varchar                  DEFAULT NULL,
-        metadata_4              varchar                  DEFAULT NULL,
-        metadata_5              varchar                  DEFAULT NULL,
-        metadata_6              varchar                  DEFAULT NULL,
-        metadata_7              varchar                  DEFAULT NULL,
-        metadata_8              varchar                  DEFAULT NULL,
-        metadata_9              varchar                  DEFAULT NULL,
-        metadata_10             varchar                  DEFAULT NULL
-    );`,
-                err => {
-                    if (err !== null) {
-                        throw err;
-                    }
-                    console.log('[创建表]: sessions');
+            db.run(sql, err => {
+                if (err !== null) {
+                    throw err;
                 }
-            );
+                console.log('[创建表]: sessions');
+            });
         });
     }
 
@@ -232,7 +231,7 @@ export class SessionsService {
 export class SessionControl {
     sessionId: number;
 
-    constructor(protected sessions: SessionsService) {}
+    constructor(protected sessionsService: SessionsService, protected rescorcesServices: RescorcesServices) {}
 
     generateId() {
         return 6062739610258400;
@@ -240,7 +239,7 @@ export class SessionControl {
     }
 
     insertWebSessionStart(sessionID: number, s) {
-        this.sessions.insert(sessionID, {
+        this.sessionsService.insert(sessionID, {
             Platform: 'web',
             Timestamp: s.Timestamp,
             ProjectID: s.ProjectID,
@@ -262,11 +261,12 @@ export class SessionControl {
     }
 
     searchSessions(projectId, userId) {
-        return this.sessions.queryAll(projectId);
+        return this.sessionsService.queryAll(projectId);
     }
 
     async getSessionById(sessionId) {
-        const session = await this.sessions.findOne(sessionId);
+        const session = await this.sessionsService.findOne(sessionId);
+        const rescores = await this.rescorcesServices.find(sessionId);
 
         const url = `http://127.0.0.1:8888/${session.projectId}/sessions2/${session.sessionId}`;
 
@@ -280,7 +280,7 @@ export class SessionControl {
                 sessionId: session.sessionId,
                 projectId: session.projectId,
                 startTs: session.startTs,
-                duration: 3000,
+                duration: session.duration,
                 userId: session.userId,
                 userAnonymousId: null,
                 userUuid: session.userUuid,
@@ -321,7 +321,7 @@ export class SessionControl {
                 domURL: domURL,
                 mobsUrl: mobsUrl,
                 devtoolsURL: devtoolsURL,
-                resources: [],
+                resources: rescores,
                 notes: [],
                 metadata: {},
                 issues: [],

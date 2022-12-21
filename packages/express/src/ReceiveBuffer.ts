@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import { MessageDistributor, to64Int, ServiceEnCodeMessage } from '@stbui/sessionreplay-core';
 
 export class ReceiveBuffer {
@@ -21,7 +22,7 @@ export class ReceiveBuffer {
         fs.appendFileSync(this.storePath, r, { encoding: 'binary' });
     }
 
-    private messageEncoder(data: any[]) {
+    private messageEncoder(data: any[], callbackMessage) {
         data.forEach(msg => {
             // 文件开头，包含了时间
             if ('batch_metadata'.includes(msg.tp)) {
@@ -33,19 +34,41 @@ export class ReceiveBuffer {
             if (this.ignoreMessage.includes(msg.tp)) {
                 // 更新到数据库
                 // if(resource_timing) {}
+                callbackMessage && callbackMessage(msg);
 
                 return;
+            }
+
+            if (msg.tp === 'set_css_data_url_based') {
+                // msg.baseURL = null;
+                msg.tp = 'set_css_data';
+            }
+
+            if (msg.tp === 'set_node_attribute_url_based') {
+                if (msg.name === 'src' || msg.name === 'href') {
+                    // const u = msg.baseURL;
+                    // const v = msg.value;
+                    // const _url = URL.parse(u);
+                    // msg.baseURL = null;
+                } else if (msg.name === 'style') {
+                    // const u = msg.baseURL;
+                    // const v = msg.value;
+                    // msg.baseURL = null;
+                    // const _url = URL.parse(u);
+                }
+
+                msg.tp = 'set_node_attribute';
             }
 
             this.encode(msg);
         });
     }
 
-    insert(buf: Buffer) {
+    insert(buf: Buffer, callbackMessage) {
         const messageDistributor = new MessageDistributor();
         let msg = messageDistributor.readAndDistributeMessages(buf);
 
-        this.messageEncoder(msg);
+        this.messageEncoder(msg, callbackMessage);
     }
 
     start(projectId, sessionId) {

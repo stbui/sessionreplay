@@ -15,6 +15,10 @@ export class Database {
 
         return this.db;
     }
+}
+
+export class DatabaseServices {
+    constructor(protected db) {}
 
     select() {}
 

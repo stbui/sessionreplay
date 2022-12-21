@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { Database } from './database';
 import { SessionControl, SessionsService } from './sessions';
 import { ProjectsControl, ProjectsService } from './projects';
+import { RescorcesServices, RescorcesControl } from './resources';
 import { AccountControl } from './account';
 import { Config } from './config';
 import { ReceiveBuffer } from './ReceiveBuffer';
@@ -16,8 +17,11 @@ export function bootstrap(app) {
     const database = new Database(config);
     const db = database.init();
 
+    const rescorcesServices = new RescorcesServices(db);
+    const rescorcesControl = new RescorcesControl(rescorcesServices);
+
     const sessionsService = new SessionsService(db);
-    const sessionControl = new SessionControl(sessionsService);
+    const sessionControl = new SessionControl(sessionsService, rescorcesServices);
 
     const projectsService = new ProjectsService(db);
     const projectsControl = new ProjectsControl(projectsService);
@@ -181,6 +185,7 @@ export function bootstrap(app) {
             sessionControl.insertWebSessionStart(sessionId, sessionStart);
             receiveBuffer.start(projectID, sessionId);
         } else {
+            // 初始化文件存储位置
             tokenData = JSON.parse(req.body.token);
             receiveBuffer.start(projectID, tokenData.id);
         }
@@ -198,15 +203,31 @@ export function bootstrap(app) {
             beaconSizeLimit: 10000000,
         });
     });
+
     app.post('/v1/web/i', (req, res) => {
         // Authorization Bearer
+        const authorization = req.headers['authorization'];
+        if (!authorization) {
+            return res.send('error');
+        }
+
+        const bearer = authorization.split(' ');
+        const b = bearer[0]['Bearer'];
+        const tokenData = JSON.parse(bearer[1]);
+
         const sessionData = {
-            ID: '',
+            ID: tokenData.id,
+            delay: tokenData.delay,
+            expTime: tokenData.expTime,
         };
 
         req.on('data', chunk => {
             console.log(`可用的数据块: ${chunk.length}`);
-            receiveBuffer.insert(chunk);
+            receiveBuffer.insert(chunk, msg => {
+                if (msg.tp === 'resource_timing') {
+                    rescorcesControl.InsertWebStatsResourceEvent(sessionData.ID, msg);
+                }
+            });
         });
 
         res.send();

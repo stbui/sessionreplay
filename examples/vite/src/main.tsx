@@ -10,7 +10,7 @@ const tracker = new OpenReplay({
     defaultInputMode: 0,
     obscureTextNumbers: false,
     obscureTextEmails: true,
-    // ingestPoint: 'http://127.0.0.1:8888',
+    ingestPoint: 'http://127.0.0.1:8888',
     __DISABLE_SECURE_MODE: true,
 });
 tracker.start();
