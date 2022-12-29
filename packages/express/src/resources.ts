@@ -56,7 +56,7 @@ export class RescorcesServices {
         });
     }
 
-    select() {
+    select(): Promise<any[]> {
         console.log('[query][resources]');
 
         const sql = 'SELECT * FROM resources';
@@ -73,7 +73,7 @@ export class RescorcesServices {
 
     findOne() {}
 
-    add(seesionid, r) {
+    add(seesionid, r): Promise<any> {
         const sql = `INSERT INTO resources (
 			session_id, timestamp, message_id, 
 			type,
@@ -137,10 +137,10 @@ const EnsureMethod = (method: string): string => {
     return 'GET';
 };
 
-const EnsureType = (tp: string): string => {
+const EnsureType = (initiator: string): string => {
     // const TYPES = {"other", "script", "stylesheet", "fetch", "img", "media"}
 
-    return 'other';
+    return initiator;
 };
 
 export class RescorcesControl {
@@ -148,7 +148,7 @@ export class RescorcesControl {
 
     InsertWebStatsResourceEvent(seesionid: string, msg) {
         const urlQuery = DiscardURLQuery(msg.url);
-        const resourceType = EnsureType(msg.tp);
+        const resourceType = EnsureType(msg.initiator);
         const method = EnsureMethod(msg.method);
 
         return this.rescorcesServices.add(seesionid, {

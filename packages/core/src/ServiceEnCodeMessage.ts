@@ -902,6 +902,17 @@ function CreateIFrameDocument(msg) {
     return w.flush();
 }
 
+function AdoptedSSAddOwner(msg) {
+    const w = new writer(21);
+    w.uint(76);
+
+    w.uint(msg.sheetID);
+    w.uint(msg.id);
+
+    w.checkpoint();
+    return w.flush();
+}
+
 function IOSBatchMeta(msg) {
     const w = new writer(31);
     w.uint(107);
@@ -1180,13 +1191,13 @@ function IOSIssueEvent(msg) {
 }
 
 const metadataMessage = new Map();
-// metadataMessage.set(80, batchMeta);
-// metadataMessage.set(81, batchMetadata);
-// metadataMessage.set(82, partitionedMessage);
+metadataMessage.set(80, batchMeta);
+metadataMessage.set(81, batchMetadata);
+metadataMessage.set(82, partitionedMessage);
 metadataMessage.set(0, timestamp);
-// metadataMessage.set(1, SessionStart);
-// metadataMessage.set(2, SessionDisconnect);
-// metadataMessage.set(3, SessionEnd);
+metadataMessage.set(1, SessionStart);
+metadataMessage.set(2, SessionDisconnect);
+metadataMessage.set(3, SessionEnd);
 metadataMessage.set(4, SetPageLocation);
 metadataMessage.set(5, SetViewportSize);
 metadataMessage.set(6, SetViewportScroll);
@@ -1200,76 +1211,77 @@ metadataMessage.set(13, RemoveNodeAttribute);
 metadataMessage.set(14, SetNodeData);
 metadataMessage.set(15, SetCSSData);
 metadataMessage.set(16, SetNodeScroll);
-// metadataMessage.set(17, SetInputTarget);
+metadataMessage.set(17, SetInputTarget);
 metadataMessage.set(18, SetInputValue);
 metadataMessage.set(19, SetInputChecked);
 metadataMessage.set(20, MouseMove);
-// metadataMessage.set(21, MouseClickDepricated);
+metadataMessage.set(21, MouseClickDepricated);
 metadataMessage.set(22, ConsoleLog);
-// metadataMessage.set(23, PageLoadTiming);
-// metadataMessage.set(24, PageRenderTiming);
-// metadataMessage.set(25, JSException);
-// metadataMessage.set(26, RawErrorEvent);
-// metadataMessage.set(27, RawCustomEvent);
-// metadataMessage.set(28, UserID);
-// metadataMessage.set(29, UserAnonymousID);
-// metadataMessage.set(30, Metadata);
-// metadataMessage.set(31, PageEvent);
-// metadataMessage.set(32, InputEvent);
-// metadataMessage.set(33, ClickEvent);
-// metadataMessage.set(34, ErrorEvent);
-// metadataMessage.set(35, ResourceEvent);
-// metadataMessage.set(36, CustomEvent);
+metadataMessage.set(23, PageLoadTiming);
+metadataMessage.set(24, PageRenderTiming);
+metadataMessage.set(25, JSException);
+metadataMessage.set(26, RawErrorEvent);
+metadataMessage.set(27, RawCustomEvent);
+metadataMessage.set(28, UserID);
+metadataMessage.set(29, UserAnonymousID);
+metadataMessage.set(30, Metadata);
+metadataMessage.set(31, PageEvent);
+metadataMessage.set(32, InputEvent);
+metadataMessage.set(33, ClickEvent);
+metadataMessage.set(34, ErrorEvent);
+metadataMessage.set(35, ResourceEvent);
+metadataMessage.set(36, CustomEvent);
 metadataMessage.set(37, CSSInsertRule);
 metadataMessage.set(38, CSSDeleteRule);
 metadataMessage.set(39, Fetch);
 metadataMessage.set(40, Profiler);
 metadataMessage.set(41, OTable);
-// metadataMessage.set(42, StateAction);
-// metadataMessage.set(43, StateActionEvent);
+metadataMessage.set(42, StateAction);
+metadataMessage.set(43, StateActionEvent);
 metadataMessage.set(44, Redux);
 metadataMessage.set(45, Vuex);
 metadataMessage.set(46, MobX);
 metadataMessage.set(47, NgRx);
 metadataMessage.set(48, GraphQL);
 metadataMessage.set(49, PerformanceTrack);
-// metadataMessage.set(50, GraphQLEvent);
-// metadataMessage.set(52, DOMDrop);
-// metadataMessage.set(53, ResourceTiming);
+metadataMessage.set(50, GraphQLEvent);
+metadataMessage.set(52, DOMDrop);
+metadataMessage.set(53, ResourceTiming);
 metadataMessage.set(54, ConnectionInformation);
 metadataMessage.set(55, SetPageVisibility);
-// metadataMessage.set(56, PerformanceTrackAggr);
+metadataMessage.set(56, PerformanceTrackAggr);
 metadataMessage.set(58, RawSetNodeFocus);
 metadataMessage.set(59, LongTask);
 metadataMessage.set(60, SetNodeAttributeURLBased);
 metadataMessage.set(61, SetCSSDataURLBased);
-// metadataMessage.set(62, IssueEvent);
-// metadataMessage.set(63, TechnicalInfo);
-// metadataMessage.set(64, CustomIssue);
-// metadataMessage.set(65, PageClose);
-// metadataMessage.set(66, AssetCache);
+metadataMessage.set(62, IssueEvent);
+metadataMessage.set(63, TechnicalInfo);
+metadataMessage.set(64, CustomIssue);
+metadataMessage.set(65, PageClose);
+metadataMessage.set(66, AssetCache);
 metadataMessage.set(67, CSSInsertRuleURLBased);
 metadataMessage.set(69, MouseClick);
 metadataMessage.set(70, CreateIFrameDocument);
+metadataMessage.set(76, AdoptedSSAddOwner);
 metadataMessage.set(107, IOSBatchMeta);
 metadataMessage.set(90, IOSSessionStart);
-// metadataMessage.set(91, IOSSessionEnd);
-// metadataMessage.set(92, IOSMetadata);
+metadataMessage.set(91, IOSSessionEnd);
+metadataMessage.set(92, IOSMetadata);
 metadataMessage.set(93, IOSCustomEvent);
 metadataMessage.set(94, IOSUserID);
-// metadataMessage.set(95, IOSUserAnonymousID);
+metadataMessage.set(95, IOSUserAnonymousID);
 metadataMessage.set(96, IOSScreenChanges);
-// metadataMessage.set(97, IOSCrash);
-// metadataMessage.set(98, IOSScreenEnter);
-// metadataMessage.set(99, IOSScreenLeave);
+metadataMessage.set(97, IOSCrash);
+metadataMessage.set(98, IOSScreenEnter);
+metadataMessage.set(99, IOSScreenLeave);
 metadataMessage.set(100, IOSClickEvent);
-// metadataMessage.set(101, IOSInputEvent);
+metadataMessage.set(101, IOSInputEvent);
 metadataMessage.set(102, IOSPerformanceEvent);
 metadataMessage.set(103, IOSLog);
-// metadataMessage.set(104, IOSInternalError);
+metadataMessage.set(104, IOSInternalError);
 metadataMessage.set(105, IOSNetworkCall);
-// metadataMessage.set(110, IOSPerformanceAggregated);
-// metadataMessage.set(111, IOSIssueEvent);
+metadataMessage.set(110, IOSPerformanceAggregated);
+metadataMessage.set(111, IOSIssueEvent);
 
 export default function ServiceEnCodeMessage(msg) {
     // console.log('++++++++++++++++', msg.tp);
@@ -1297,41 +1309,80 @@ export default function ServiceEnCodeMessage(msg) {
         console_log: 22,
         page_load_timing: 23,
         page_render_timing: 24,
-        JSException: 25,
-        RawCustomEvent: 27,
+        js_exception_deprecated: 25,
+        IntegrationEvent: 26,
+        raw_custom_event: 27,
         user_id: 28,
         user_anonymous_id: 29,
         metadata: 30,
-        CSSInsertRule: 37,
-        CSSDeleteRule: 38,
+        InputEvent: 32,
+        ClickEvent: 33,
+        ErrorEvent: 34,
+        ResourceEvent: 35,
+        CustomEvent: 36,
+        css_insert_rule: 37,
+        css_delete_rule: 38,
         fetch: 39,
         profiler: 40,
-        OTable: 41,
-        StateAction: 42,
-        Redux: 44,
-        Vuex: 45,
-        MobX: 46,
-        NgRx: 47,
-        GraphQL: 48,
+        o_table: 41,
+        state_action: 42,
+        StateActionEvent: 43,
+        redux: 44,
+        vuex: 45,
+        mob_x: 46,
+        ng_rx: 47,
+        graph_ql: 48,
         performance_track: 49,
+        graph_ql_event: 50,
+        fetch_event: 52,
+        dom_drop: 52,
         resource_timing: 53,
         connection_information: 54,
         set_page_visibility: 55,
-        LongTask: 59,
+        PerformanceTrackAggr: 56,
+        load_font_face: 57,
+        set_node_focus: 58,
+        long_task: 59,
         set_node_attribute_url_based: 60,
         set_css_data_url_based: 61,
-        TechnicalInfo: 63,
-        CustomIssue: 64,
-        CSSInsertRuleURLBased: 67,
-        create_i_frame_document: 70,
-        AdoptedSSReplaceURLBased: 71,
-        AdoptedSSInsertRuleURLBased: 73,
-        AdoptedSSDeleteRule: 75,
-        AdoptedSSAddOwner: 76,
-        AdoptedSSRemoveOwner: 77,
-        Zustand: 79,
-        set_node_focus: 58,
+        IssueEvent: 62,
+        technical_info: 63,
+        custom_issue: 64,
+        AssetCache: 66,
+        css_insert_rule_url_based: 67,
         mouse_click: 69,
+        create_i_frame_document: 70,
+        adopted_ss_replace_url_based: 71,
+        adopted_ss_replace: 72,
+        adopted_ss_insert_rule_url_based: 73,
+        adopted_ss_insert_rule: 74,
+        adopted_ss_delete_rule: 75,
+        adopted_ss_add_owner: 76,
+        adopted_ss_remove_owner: 77,
+        zustand: 79,
+
+        //
+        js_exception: 78,
+        ios_session_start: 90,
+        IOSSessionEnd: 91,
+        IOSMetadata: 92,
+        ios_custom_event: 93,
+        IOSUserID: 94,
+        IOSUserAnonymousID: 95,
+        ios_screen_changes: 96,
+        IOSCrash: 97,
+        IOSScreenEnter: 98,
+        IOSScreenLeave: 99,
+        ios_click_event: 100,
+        IOSInputEvent: 101,
+        ios_performance_event: 102,
+        ios_log: 103,
+        IOSInternalError: 104,
+        ios_network_call: 105,
+        IOSPerformanceAggregated: 110,
+
+        IOSIssueEvent: 111,
+        IOSBatchMeta: 107,
     };
 
     const fun = metadataMessage.get(mt[msg.tp]);

@@ -2,4 +2,4 @@ import ServiceEnCodeMessage from './ServiceEnCodeMessage';
 export { ServiceEnCodeMessage };
 
 export * from './server';
-export * from './pipeline';
+export * from './to64Int';

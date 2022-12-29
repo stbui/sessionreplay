@@ -1,4 +1,5 @@
-import { readFileSync } from 'fs';
+import { readFileSync, createWriteStream } from 'fs';
+import path from 'path';
 
 import { Database } from './database';
 import { SessionControl, SessionsService } from './sessions';
@@ -10,7 +11,7 @@ import { ReceiveBuffer } from './ReceiveBuffer';
 import { UserAgent } from './UserAgent';
 import { getUUID } from './utils';
 
-export function bootstrap(app) {
+export function bootstrap(app, { prefix = '' }) {
     const config = new Config();
     config.storePath = './data';
 
@@ -30,21 +31,28 @@ export function bootstrap(app) {
     const receiveBuffer = new ReceiveBuffer(config);
 
     // =============================================================
-    app.get(['/:projectId/sessions/:sessionId', '/:projectId/sessions2/:sessionId'], async (req, res) => {
-        const json = await sessionControl.getSessionById(req.params.sessionId);
-        res.send(json);
-    });
+    app.get(
+        [prefix + '/:projectId/sessions/:sessionId', prefix + '/:projectId/sessions2/:sessionId'],
+        async (req, res) => {
+            const url = `${req.protocol}://${req.hostname}:8080${prefix}`;
+            const json = await sessionControl.getSessionById(req.params.sessionId, url);
+            res.send(json);
+        }
+    );
 
-    app.get('/:projectId/sessions/:sessionId/notes', (req, res) => {
+    app.get(prefix + '/:projectId/sessions/:sessionId/notes', (req, res) => {
         res.send({ data: [] });
     });
 
-    app.get(['/:projectId/sessions/:sessionId/dom.mobs', '/:projectId/sessions2/:sessionId/dom.mobs'], (req, res) => {
-        const path = `${config.storePath}/${req.params.projectId}/sessions/${req.params.sessionId}/dom.mobs.json`;
-        const buff = readFileSync(path);
-        console.log('[]: 读取数据文件', path);
-        res.send(buff);
-    });
+    app.get(
+        [prefix + '/:projectId/sessions/:sessionId/dom.mobs', prefix + '/:projectId/sessions2/:sessionId/dom.mobs'],
+        (req, res) => {
+            const path = `${config.storePath}/${req.params.projectId}/sessions/${req.params.sessionId}/dom.mobs.json`;
+            const buff = readFileSync(path);
+            console.log('[replay]: 读取数据文件', path);
+            res.send(buff);
+        }
+    );
 
     // app.get('/:projectId/sessions/:sessionId/devtools.mob', (req, res) => {
     // const path = `./src/api/${req.params.projectId}/sessions/${req.params.sessionId}/dom.mobs.json`;
@@ -52,19 +60,19 @@ export function bootstrap(app) {
     // res.send(buff);
     // });
 
-    app.get('/account', (req, res) => {
+    app.get(prefix + '/account', (req, res) => {
         res.send(accountControl);
     });
-    app.get('/projects', (req, res) => {
-        res.send(projectsControl);
+    app.get(prefix + '/projects', (req, res) => {
+        res.send(projectsControl.query());
     });
-    app.get('/integrations/slack/channels', (req, res) => {
+    app.get(prefix + '/integrations/slack/channels', (req, res) => {
         res.send({ data: [] });
     });
-    app.get('/integrations/issues', (req, res) => {
+    app.get(prefix + '/integrations/issues', (req, res) => {
         res.send({ data: [] });
     });
-    app.get('/client/members', (req, res) => {
+    app.get(prefix + '/client/members', (req, res) => {
         res.send({
             data: [
                 {
@@ -87,7 +95,7 @@ export function bootstrap(app) {
         });
     });
 
-    app.get('/boarding', (req, res) => {
+    app.get(prefix + '/boarding', (req, res) => {
         res.send({
             data: [
                 {
@@ -106,28 +114,28 @@ export function bootstrap(app) {
         });
     });
 
-    app.get('/limits', (req, res) => {
+    app.get(prefix + '/limits', (req, res) => {
         res.send({ data: { teamMember: -1, projects: -1 } });
     });
-    app.get('/notifications/count', (req, res) => {
+    app.get(prefix + '/notifications/count', (req, res) => {
         res.send({ data: [] });
     });
-    app.get('/notifications', (req, res) => {
+    app.get(prefix + '/notifications', (req, res) => {
         res.send({ data: [] });
     });
-    app.get('/:projectId/saved_search', (req, res) => {
+    app.get(prefix + '/:projectId/saved_search', (req, res) => {
         res.send({ data: [] });
     });
 
-    app.get('/:projectId/metadata', (req, res) => {
+    app.get(prefix + '/:projectId/metadata', (req, res) => {
         res.send({ data: [] });
     });
-    app.post(['/:projectId/sessions/search', '/:projectId/sessions/search2'], async (req, res) => {
+    app.post([prefix + '/:projectId/sessions/search', prefix + '/:projectId/sessions/search2'], async (req, res) => {
         const sessions = await sessionControl.searchSessions(req.params.projectId, 1);
 
         res.send({
             data: {
-                total: 10,
+                total: 10000,
                 sessions: sessions,
             },
         });
@@ -136,7 +144,7 @@ export function bootstrap(app) {
 
     // =============================================================
 
-    app.post('/v1/web/start', (req, res) => {
+    app.post(prefix + '/v1/web/start', (req, res) => {
         let tokenData: any = {};
         const userUUID = getUUID(req.body.userUUID);
         const reset = req.body.reset;
@@ -175,7 +183,7 @@ export function bootstrap(app) {
                 UserBrowser: userAgent.browser,
                 UserBrowserVersion: uu.getBrowserVersion(ua),
                 UserDevice: '',
-                UserDeviceType: '',
+                UserDeviceType: 'desktop',
                 UserCountry: 'TW',
                 UserDeviceMemorySize: req.body.deviceMemory,
                 UserDeviceHeapSize: req.body.jsHeapSizeLimit,
@@ -204,7 +212,7 @@ export function bootstrap(app) {
         });
     });
 
-    app.post('/v1/web/i', (req, res) => {
+    app.post(prefix + '/v1/web/i', (req, res) => {
         // Authorization Bearer
         const authorization = req.headers['authorization'];
         if (!authorization) {
@@ -221,14 +229,23 @@ export function bootstrap(app) {
             expTime: tokenData.expTime,
         };
 
-        req.on('data', chunk => {
-            console.log(`可用的数据块: ${chunk.length}`);
-            receiveBuffer.insert(chunk, msg => {
+        const requestBody = [];
+
+        req.on('data', chunks => {
+            requestBody.push(chunks);
+        });
+
+        req.on('end', function () {
+            const buf = Buffer.concat(requestBody);
+            console.log(`可用的数据块: ${buf.length}`);
+            receiveBuffer.insert(buf, msg => {
                 if (msg.tp === 'resource_timing') {
                     rescorcesControl.InsertWebStatsResourceEvent(sessionData.ID, msg);
                 }
             });
         });
+
+        // req.pipe(createWriteStream(path.join('.', Date.now().toString() + '.dat')));
 
         res.send();
     });

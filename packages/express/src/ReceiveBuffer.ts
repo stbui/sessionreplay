@@ -3,7 +3,37 @@ import fs from 'fs';
 import { MessageDistributor, to64Int, ServiceEnCodeMessage } from '@stbui/sessionreplay-core';
 
 export class ReceiveBuffer {
-    private ignoreMessage = ['batch_metadata', 'user_id', 'resource_timing', 'page_load_timing', 'page_render_timing'];
+    private ignoreMessage = [
+        // 'metadata',
+        // 'IssueEvent',
+        // 'SessionStart',
+        // 'SessionEnd',
+        // 'user_id',
+        // 'user_anonymous_id',
+        // 'ClickEvent',
+        // 'IntegrationEvent',
+        // 'PerformanceTrackAggr',
+        // 'JSException',
+        // 'ResourceTiming',
+        // 'RawCustomEvent',
+        // 'CustomIssue',
+        // 'Fetch',
+        // 'GraphQL',
+        // 'StateAction',
+        // 'SetInputTarget',
+        // 'SetInputValue',
+        // 'create_document',
+        // 'MouseClick',
+        // 'set_page_location',
+        // 'page_load_timing',
+        // 'page_render_timing',
+
+        'batch_metadata',
+        'user_id',
+        'resource_timing',
+        'page_load_timing',
+        'page_render_timing',
+    ];
 
     projectId: string;
     sessionId: number;
@@ -13,13 +43,18 @@ export class ReceiveBuffer {
     constructor(protected config) {}
 
     private encode(msg) {
-        const data = ServiceEnCodeMessage(msg);
+        try {
+            const data = ServiceEnCodeMessage(msg);
 
-        const i = to64Int(0);
-        const r = Buffer.concat([i, data]);
+            const i = to64Int(0);
+            const r = Buffer.concat([i, data]);
 
-        console.log('写入数据到文件', this.storePath);
-        fs.appendFileSync(this.storePath, r, { encoding: 'binary' });
+            // console.log('写入数据到文件', this.storePath);
+            fs.appendFileSync(this.storePath, r, { encoding: 'binary' });
+        } catch (e) {
+            console.log(msg);
+            console.log(e);
+        }
     }
 
     private messageEncoder(data: any[], callbackMessage) {
@@ -33,32 +68,27 @@ export class ReceiveBuffer {
             // 不需要
             if (this.ignoreMessage.includes(msg.tp)) {
                 // 更新到数据库
-                // if(resource_timing) {}
                 callbackMessage && callbackMessage(msg);
-
                 return;
             }
 
-            if (msg.tp === 'set_css_data_url_based') {
-                // msg.baseURL = null;
-                msg.tp = 'set_css_data';
-            }
+            // if (msg.tp === 'set_css_data_url_based') {
+            //     // msg.baseURL = null;
+            // }
 
-            if (msg.tp === 'set_node_attribute_url_based') {
-                if (msg.name === 'src' || msg.name === 'href') {
-                    // const u = msg.baseURL;
-                    // const v = msg.value;
-                    // const _url = URL.parse(u);
-                    // msg.baseURL = null;
-                } else if (msg.name === 'style') {
-                    // const u = msg.baseURL;
-                    // const v = msg.value;
-                    // msg.baseURL = null;
-                    // const _url = URL.parse(u);
-                }
-
-                msg.tp = 'set_node_attribute';
-            }
+            // if (msg.tp === 'set_node_attribute_url_based') {
+            //     if (msg.name === 'src' || msg.name === 'href') {
+            //         // const u = msg.baseURL;
+            //         // const v = msg.value;
+            //         // const _url = URL.parse(u);
+            //         // msg.baseURL = null;
+            //     } else if (msg.name === 'style') {
+            //         // const u = msg.baseURL;
+            //         // const v = msg.value;
+            //         // msg.baseURL = null;
+            //         // const _url = URL.parse(u);
+            //     }
+            // }
 
             this.encode(msg);
         });
@@ -68,6 +98,7 @@ export class ReceiveBuffer {
         const messageDistributor = new MessageDistributor();
         let msg = messageDistributor.readAndDistributeMessages(buf);
 
+        fs.writeFileSync('test.json', JSON.stringify(msg, null, 2));
         this.messageEncoder(msg, callbackMessage);
     }
 
@@ -77,11 +108,11 @@ export class ReceiveBuffer {
         this.storePath = `${this.config.storePath}/${projectId}/sessions/${sessionId}/dom.mobs.json`;
         const dir = `${this.config.storePath}/${projectId}/sessions/${sessionId}`;
 
-        if (fs.existsSync(this.storePath)) {
-            // 是否要删除之前的数据文件
-            console.log('删除之前的数据文件', this.storePath);
-            fs.rmSync(this.storePath);
-        }
+        // if (fs.existsSync(this.storePath)) {
+        //     // 是否要删除之前的数据文件
+        //     console.log('删除之前的数据文件', this.storePath);
+        //     fs.rmSync(this.storePath);
+        // }
 
         console.log('创建数据存储目录', dir);
         fs.mkdirSync(dir, { recursive: true });

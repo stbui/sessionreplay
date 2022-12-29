@@ -264,11 +264,11 @@ export class SessionControl {
         return this.sessionsService.queryAll(projectId);
     }
 
-    async getSessionById(sessionId) {
+    async getSessionById(sessionId, originUrl: string) {
         const session = await this.sessionsService.findOne(sessionId);
         const rescores = await this.rescorcesServices.find(sessionId);
 
-        const url = `http://127.0.0.1:8888/${session.projectId}/sessions2/${session.sessionId}`;
+        const url = `${originUrl}/${session.projectId}/sessions2/${session.sessionId}`;
 
         const domURL = [`${url}/dom.mobs`];
         const mobsUrl = [];

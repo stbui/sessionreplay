@@ -2,10 +2,7 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "outDir": "lib",
-        "rootDir": "src",
-        "noUnusedLocals": false,
-        "module": "CommonJS",
-        "moduleResolution": "node"
+        "rootDir": "src"
     },
     "include": ["src"]
 }

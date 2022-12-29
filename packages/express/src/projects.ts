@@ -3,7 +3,6 @@ import { covertHump } from './utils';
 export class ProjectsService {
     constructor(protected db) {
         db.serialize(function () {
-            // db.run('DROP TABLE IF EXISTS "sessions";');
             db.run(
                 `CREATE TABLE IF NOT EXISTS projects 
                 (
@@ -40,7 +39,7 @@ export class ProjectsService {
         });
     }
 
-    query(project_key: number) {
+    query(project_key: number): Promise<any[]> {
         console.log('[query][projects]', project_key);
 
         const sql = 'SELECT * FROM projects WHERE project_key = $project_key';
@@ -62,7 +61,7 @@ export class ProjectsService {
     }
 
     findOne(project_key: number): Promise<{}> {
-        return this.query(project_key).then((rows: any) => {
+        return this.query(project_key).then(rows => {
             if (rows.length) {
                 return rows[0];
             }
@@ -77,7 +76,7 @@ export class ProjectsService {
         active: boolean;
         max_session_duration: number;
         save_request_payloads: boolean;
-    }): Promise<any> {
+    }): Promise<string> {
         const sql = `INSERT INTO projects 
         (
             project_key,name,active,max_session_duration,save_request_payloads
@@ -105,18 +104,47 @@ export class ProjectsService {
             );
         });
     }
+
+    update(p): Promise<any> {
+        const sql =
+            'UPDATE projects SET name = $name, recorded=$recorded, save_request_payloads=$save_request_payloads WHERE project_key = $project_key';
+
+        return new Promise((resolve, reject) => {
+            this.db.run(
+                sql,
+                {
+                    $project_key: p.project_key,
+                    $name: p.name,
+                    $recorded: p.recorded,
+                    $max_session_duration: p.max_session_duration,
+                    $save_request_payloads: p.save_request_payloads,
+                },
+                function (err) {
+                    if (err !== null) {
+                        return reject(err);
+                    }
+
+                    resolve(this.lastID);
+                }
+            );
+        });
+    }
 }
 
 export class ProjectsControl {
     constructor(protected projectsService: ProjectsService) {}
 
-    create() {
-        this.projectsService.insert({
+    create(payload: { name: string; saveRequestPayloads: boolean }) {
+        // name: 'test';
+        // saveRequestPayloads: false;
+        // stackIntegrations: false;
+        // status: 'red';
+        return this.projectsService.insert({
             project_key: 'FC8cwpO5yLvmHKidhn6X',
-            name: 'stbui',
+            name: payload.name,
             active: true,
             max_session_duration: 1000,
-            save_request_payloads: false,
+            save_request_payloads: payload.saveRequestPayloads,
         });
     }
 
@@ -133,7 +161,7 @@ export class ProjectsControl {
         };
     }
 
-    toJSON() {
+    query() {
         return {
             data: [
                 {
@@ -149,4 +177,4 @@ export class ProjectsControl {
             ],
         };
     }
-}
+    }

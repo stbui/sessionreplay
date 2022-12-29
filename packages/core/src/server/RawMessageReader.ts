@@ -27,7 +27,6 @@ export default class RawMessageReader extends PrimitiveReader {
                 if (timestamp === null) {
                     return resetPointer();
                 }
-                // console.log(timestamp);
                 return {
                     tp: 'timestamp',
                     timestamp,
@@ -294,6 +293,13 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 17:
+                return {
+                    tp: 'set_input_target',
+                    ID: this.readUint(),
+                    Label: this.readString(),
+                };
+
             case 18: {
                 const id = this.readUint();
                 if (id === null) {
@@ -389,7 +395,7 @@ export default class RawMessageReader extends PrimitiveReader {
 
             case 25:
                 return {
-                    tp: 'JSException',
+                    tp: 'js_exception',
                     name: this.readString(),
                     message: this.readString(),
                     payload: this.readString(),
@@ -406,7 +412,7 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
 
             case 27:
-                return { tp: 'RawCustomEvent', name: this.readString(), payload: this.readString() };
+                return { tp: 'raw_custom_event', name: this.readString(), payload: this.readString() };
 
             case 28: {
                 return {
@@ -416,7 +422,7 @@ export default class RawMessageReader extends PrimitiveReader {
             }
 
             case 29:
-                return { tp: 'UserAnonymousID', id: this.readString() };
+                return { tp: 'user_anonymous_id', id: this.readString() };
 
             case 30:
                 return {
@@ -624,6 +630,20 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 42:
+                return {
+                    tp: 'state_action',
+                    Type: this.readString(),
+                };
+
+            case 43:
+                return {
+                    tp: 'StateActionEvent',
+                    MessageID: this.readUint(),
+                    Timestamp: this.readUint(),
+                    Type: this.readString(),
+                };
+
             case 44: {
                 const action = this.readString();
                 if (action === null) {
@@ -750,6 +770,36 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 50:
+                return {
+                    tp: 'graph_ql_event',
+                    messageId: this.readUint(),
+                    timestamp: this.readUint(),
+                    operationKind: this.readString(),
+                    operationName: this.readString(),
+                    variables: this.readString(),
+                    response: this.readString(),
+                };
+
+            case 51:
+                return {
+                    tp: 'fetch_event',
+                    messageId: this.readUint(),
+                    timestamp: this.readUint(),
+                    method: this.readString(),
+                    url: this.readString(),
+                    request: this.readString(),
+                    response: this.readString(),
+                    status: this.readString(),
+                    duration: this.readString(),
+                };
+
+            case 52:
+                return {
+                    tp: 'dom_drop',
+                    timestamp: this.readUint(),
+                };
+
             case 53: {
                 return {
                     tp: 'resource_timing',
@@ -790,6 +840,34 @@ export default class RawMessageReader extends PrimitiveReader {
                     hidden,
                 };
             }
+
+            case 56:
+                return {
+                    tp: 'PerformanceTrackAggr',
+                    TimestampStart: this.readUint(),
+                    TimestampEnd: this.readUint(),
+                    MinFPS: this.readUint(),
+                    AvgFPS: this.readUint(),
+                    MaxFPS: this.readUint(),
+                    MinCPU: this.readUint(),
+                    AvgCPU: this.readUint(),
+                    MaxCPU: this.readUint(),
+                    MinTotalJSHeapSize: this.readUint(),
+                    AvgTotalJSHeapSize: this.readUint(),
+                    MaxTotalJSHeapSize: this.readUint(),
+                    MinUsedJSHeapSize: this.readUint(),
+                    AvgUsedJSHeapSize: this.readUint(),
+                    MaxUsedJSHeapSize: this.readUint(),
+                };
+
+            case 57:
+                return {
+                    tp: 'LoadFontFace',
+                    ParentID: this.readUint(),
+                    Family: this.readString(),
+                    Source: this.readString(),
+                    Descriptors: this.readString(),
+                };
 
             case 58: {
                 return {
@@ -886,17 +964,9 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
-            case 61:
-                return {
-                    tp: 61,
-                    id: this.readUint(),
-                    data: this.readString(),
-                    baseURL: this.readString(),
-                };
-
             case 62:
                 return {
-                    tp: 62,
+                    tp: 'IssueEvent',
                     messageId: this.readUint(),
                     timestamp: this.readUint(),
                     type: this.readString(),
@@ -907,21 +977,21 @@ export default class RawMessageReader extends PrimitiveReader {
 
             case 63:
                 return {
-                    tp: 63,
+                    tp: 'TechnicalInfo',
                     type: this.readString(),
                     value: this.readString(),
                 };
 
             case 64:
                 return {
-                    tp: 64,
+                    tp: 'CustomIssue',
                     name: this.readString(),
                     payload: this.readString(),
                 };
 
             case 66:
                 return {
-                    tp: 66,
+                    tp: 'AssetCache',
                     url: this.readString(),
                 };
 
@@ -1125,6 +1195,15 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 78:
+                return {
+                    tp: 'JSException',
+                    Name: this.readString(),
+                    Message: this.readString(),
+                    Payload: this.readString(),
+                    Metadata: this.readString(),
+                };
+
             case 79: {
                 const mutation = this.readString();
                 if (mutation === null) {
@@ -1197,6 +1276,21 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 91:
+                return {
+                    tp: 'IOSSessionEnd',
+                    Timestamp: this.readUint(),
+                };
+
+            case 92:
+                return {
+                    tp: 'IOSMetadata',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Key: this.readString(),
+                    Value: this.readString(),
+                };
+
             case 93: {
                 const timestamp = this.readUint();
                 if (timestamp === null) {
@@ -1222,6 +1316,22 @@ export default class RawMessageReader extends PrimitiveReader {
                     payload,
                 };
             }
+
+            case 94:
+                return {
+                    tp: 'IOSUserID',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Value: this.readString(),
+                };
+
+            case 95:
+                return {
+                    tp: 'IOSUserAnonymousID',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Value: this.readString(),
+                };
 
             case 96: {
                 const timestamp = this.readUint();
@@ -1259,6 +1369,34 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 97:
+                return {
+                    tp: 'IOSCrash',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Name: this.readString(),
+                    Reason: this.readString(),
+                    Stacktrace: this.readString(),
+                };
+
+            case 98:
+                return {
+                    tp: 'IOSScreenEnter',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Title: this.readString(),
+                    ViewName: this.readString(),
+                };
+
+            case 99:
+                return {
+                    tp: 'IOSScreenLeave',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Title: this.readString(),
+                    ViewName: this.readString(),
+                };
+
             case 100: {
                 const timestamp = this.readUint();
                 if (timestamp === null) {
@@ -1289,6 +1427,16 @@ export default class RawMessageReader extends PrimitiveReader {
                     y,
                 };
             }
+
+            case 101:
+                return {
+                    tp: 'IOSInputEvent',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Value: this.readString(),
+                    ValueMasked: this.readBoolean(),
+                    Label: this.readString(),
+                };
 
             case 102: {
                 const timestamp = this.readUint();
@@ -1342,6 +1490,14 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 104:
+                return {
+                    tp: 'IOSInternalError',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    Content: this.readString(),
+                };
+
             case 105: {
                 const timestamp = this.readUint();
                 if (timestamp === null) {
@@ -1393,6 +1549,65 @@ export default class RawMessageReader extends PrimitiveReader {
                 };
             }
 
+            case 110:
+                return {
+                    tp: 'IOSPerformanceAggregated',
+                    TimestampStart: this.readUint(),
+                    TimestampEnd: this.readUint(),
+                    MinFPS: this.readUint(),
+                    AvgFPS: this.readUint(),
+                    MaxFPS: this.readUint(),
+                    MinCPU: this.readUint(),
+                    AvgCPU: this.readUint(),
+                    MaxCPU: this.readUint(),
+                    MinMemory: this.readUint(),
+                    AvgMemory: this.readUint(),
+                    MaxMemory: this.readUint(),
+                    MinBattery: this.readUint(),
+                    AvgBattery: this.readUint(),
+                    MaxBattery: this.readUint(),
+                };
+
+            case 111:
+                return {
+                    tp: 'IOSIssueEvent',
+                    Timestamp: this.readUint(),
+                    Type: this.readString(),
+                    ContextString: this.readString(),
+                    Context: this.readString(),
+                    Payload: this.readString(),
+                };
+
+            case 126:
+                return {
+                    tp: 'SessionEnd',
+                    Timestamp: this.readUint(),
+                    EncryptionKey: this.readString(),
+                };
+
+            case 127:
+                return {
+                    tp: 'SessionSearch',
+                    Timestamp: this.readUint(),
+                    Partition: this.readUint(),
+                };
+
+            case 107:
+                return {
+                    tp: 'IOSBatchMeta',
+                    Timestamp: this.readUint(),
+                    Length: this.readUint(),
+                    FirstIndex: this.readUint(),
+                };
+
+            case 80:
+                return {
+                    tp: 'BatchMeta',
+                    PageNo: this.readUint(),
+                    FirstIndex: this.readUint(),
+                    Timestamp: this.readInt(),
+                };
+
             case 81: {
                 const version = this.readUint();
                 if (version === null) {
@@ -1428,6 +1643,13 @@ export default class RawMessageReader extends PrimitiveReader {
                     location,
                 };
             }
+
+            case 82:
+                return {
+                    tp: 'partitioned_message',
+                    PartNo: this.readUint(),
+                    PartTotal: this.readUint(),
+                };
 
             default:
                 throw new Error(
