@@ -19,6 +19,14 @@ class Table {
 
         return this;
     }
+
+    groupBy() {}
+    
+    paginate() {}
+
+    get() {
+        return this.sql;
+    }
 }
 // const a = new Table('errors').select(['project_id']).where({ project_id: '' }).sql;
 

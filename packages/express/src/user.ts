@@ -26,3 +26,26 @@ export class UserService {
         });
     }
 }
+
+export class UserControl {
+    constructor() {}
+
+    toJSON() {
+        return {
+            userId: 4339,
+            email: 'stbui',
+            role: 'owner',
+            name: 'demo',
+            createdAt: 1642510038638,
+            superAdmin: true,
+            admin: false,
+            member: false,
+            expiredInvitation: true,
+            joined: true,
+            invitationToken: null,
+            roleId: 9775,
+            roleName: 'Owner',
+            invitationLink: null,
+        };
+    }
+}

@@ -34,7 +34,9 @@ export function bootstrap(app, { prefix = '' }) {
     app.get(
         [prefix + '/:projectId/sessions/:sessionId', prefix + '/:projectId/sessions2/:sessionId'],
         async (req, res) => {
-            const url = `${req.protocol}://${req.hostname}:8080${prefix}`;
+            const port = ':8888';
+            const url = `${req.protocol}://${req.hostname}${port}${prefix}`;
+            console.log([], url);
             const json = await sessionControl.getSessionById(req.params.sessionId, url);
             res.send(json);
         }
@@ -48,8 +50,9 @@ export function bootstrap(app, { prefix = '' }) {
         [prefix + '/:projectId/sessions/:sessionId/dom.mobs', prefix + '/:projectId/sessions2/:sessionId/dom.mobs'],
         (req, res) => {
             const path = `${config.storePath}/${req.params.projectId}/sessions/${req.params.sessionId}/dom.mobs.json`;
-            const buff = readFileSync(path);
             console.log('[replay]: 读取数据文件', path);
+
+            const buff = readFileSync(path);
             res.send(buff);
         }
     );
@@ -212,7 +215,7 @@ export function bootstrap(app, { prefix = '' }) {
         });
     });
 
-    app.post(prefix + '/v1/web/i', (req, res) => {
+    app.post(prefix + '/v1/web/i', async (req, res) => {
         // Authorization Bearer
         const authorization = req.headers['authorization'];
         if (!authorization) {
@@ -229,6 +232,8 @@ export function bootstrap(app, { prefix = '' }) {
             expTime: tokenData.expTime,
         };
 
+        const session = await sessionControl.findOne(sessionData.ID);
+
         const requestBody = [];
 
         req.on('data', chunks => {
@@ -238,10 +243,14 @@ export function bootstrap(app, { prefix = '' }) {
         req.on('end', function () {
             const buf = Buffer.concat(requestBody);
             console.log(`可用的数据块: ${buf.length}`);
-            receiveBuffer.insert(buf, msg => {
-                if (msg.tp === 'resource_timing') {
-                    rescorcesControl.InsertWebStatsResourceEvent(sessionData.ID, msg);
-                }
+            receiveBuffer.insert(buf, {
+                projectId: session.projectId,
+                sessionId: sessionData.ID,
+                onMessage: msg => {
+                    if (msg.tp === 'resource_timing') {
+                        rescorcesControl.InsertWebStatsResourceEvent(sessionData.ID, msg);
+                    }
+                },
             });
         });
 

@@ -94,12 +94,17 @@ export class ReceiveBuffer {
         });
     }
 
-    insert(buf: Buffer, callbackMessage) {
+    insert(
+        buf: Buffer,
+        { projectId, sessionId, onMessage }: { projectId: string; sessionId: string; onMessage: Function }
+    ) {
+        this.storePath = `${this.config.storePath}/${projectId}/sessions/${sessionId}/dom.mobs.json`;
+
         const messageDistributor = new MessageDistributor();
         let msg = messageDistributor.readAndDistributeMessages(buf);
 
         fs.writeFileSync('test.json', JSON.stringify(msg, null, 2));
-        this.messageEncoder(msg, callbackMessage);
+        this.messageEncoder(msg, onMessage);
     }
 
     start(projectId, sessionId) {
@@ -114,7 +119,12 @@ export class ReceiveBuffer {
         //     fs.rmSync(this.storePath);
         // }
 
-        console.log('创建数据存储目录', dir);
-        fs.mkdirSync(dir, { recursive: true });
+        try {
+            console.log('创建数据存储目录', dir);
+            fs.mkdirSync(dir, { recursive: true });
+        } catch (e) {
+            console.log('创建数据存储目录', dir);
+            console.log('创建数据存储目录', e);
+        }
     }
 }

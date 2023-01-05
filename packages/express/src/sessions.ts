@@ -264,6 +264,10 @@ export class SessionControl {
         return this.sessionsService.queryAll(projectId);
     }
 
+    findOne(sessionId) {
+        return this.sessionsService.findOne(sessionId);
+    }
+
     async getSessionById(sessionId, originUrl: string) {
         const session = await this.sessionsService.findOne(sessionId);
         const rescores = await this.rescorcesServices.find(sessionId);
